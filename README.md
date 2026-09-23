@@ -63,13 +63,15 @@ gh pr create --base main --title "[1.7] spec_LOAN-12" --fill
 ```
 
 Ветки называются `d<день>/<модуль>-<логин>` — например, `d1/1.11-ivanov`.
-Эталоны и точки восстановления живут в upstream:
+Эталоны живут в upstream:
 
 ```bash
 git remote add upstream git@github.com:carmoney-lab/carmoney-lab.git
 git fetch upstream
-git switch -c d1/1.7-<логин> upstream/savepoint/d1-03   # если отстали и надо догнать
 ```
+
+Не успели на занятии — в классе не догоняем: доделайте в рамках домашнего задания
+до следующего дня программы, **тем же PR**, критерии карточки те же.
 
 ## Что ещё лежит в репозитории
 
