@@ -1,9 +1,10 @@
 SHELL := /bin/bash
 COMPOSE := docker compose
 
-# Тесты и линтер умеют работать двумя способами: локальным PHP, если он есть
-# вместе с установленными зависимостями, иначе внутри контейнера backend.
+# Тесты и линтер работают двумя способами: локальным PHP, если он есть,
+# иначе внутри контейнера backend. Зависимости при необходимости ставятся сами.
 LOCAL_PHPUNIT := $(shell test -x vendor/bin/phpunit && command -v php >/dev/null 2>&1 && echo yes)
+LOCAL_PHP := $(shell command -v php >/dev/null 2>&1 && command -v composer >/dev/null 2>&1 && echo yes)
 
 .DEFAULT_GOAL := help
 
@@ -32,12 +33,16 @@ install: ## Установить PHP-зависимости локально (н
 test: ## Прогнать тесты PHPUnit
 ifeq ($(LOCAL_PHPUNIT),yes)
 	vendor/bin/phpunit --colors=always
+else ifeq ($(LOCAL_PHP),yes)
+	@echo "==> зависимостей нет, ставлю их локально"
+	composer install --no-interaction --no-progress
+	vendor/bin/phpunit --colors=always
 else
 	$(COMPOSE) run --rm --no-deps backend vendor/bin/phpunit --colors=always
 endif
 
 lint: ## Проверить синтаксис PHP во всех исходниках и тестах
-ifeq ($(LOCAL_PHPUNIT),yes)
+ifeq ($(LOCAL_PHP),yes)
 	@find backend tests -name '*.php' -print0 | xargs -0 -n1 php -l > /dev/null && echo "php -l: ошибок нет"
 else
 	$(COMPOSE) run --rm --no-deps backend bash -lc "find backend tests -name '*.php' -print0 | xargs -0 -n1 php -l > /dev/null && echo 'php -l: ошибок нет'"
