@@ -8,7 +8,10 @@
 # Settings → Branches → Require a pull request → Require review from Code Owners.
 
 # Обвязка агента и CI — владелец CI и harness (в дне 3 — Инженер конвейера)
-/.agent/                @OWNER-HARNESS
+/.opencode/             @OWNER-HARNESS
+/opencode.json          @OWNER-HARNESS
+/.githooks/             @OWNER-HARNESS
+/docs/agent-rules.md    @OWNER-HARNESS
 /AGENTS.md              @OWNER-HARNESS
 /.github/               @OWNER-HARNESS
 

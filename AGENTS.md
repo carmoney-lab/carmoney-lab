@@ -13,7 +13,7 @@ make lint                      # php -l по backend/ и tests/
 curl http://localhost:8080/health
 ```
 Без Docker: `composer install`, затем `make test` и `make lint` работают локально.
-Хуки подключаются один раз: `git config core.hooksPath .agent/hooks`.
+Хуки подключаются один раз: `git config core.hooksPath .githooks`.
 
 ## Структура
 - `backend/` — PHP 8.3 + Slim: `src/Domain` (правила), `src/Http`, `src/Repository`, `config/rules.php`, `public/`
@@ -21,7 +21,8 @@ curl http://localhost:8080/health
 - `db/` — `schema.sql` и `seed.sql` (24 синтетические заявки)
 - `tests/` — PHPUnit: `Unit/` и `Feature/`
 - `docs/` — артефакты задач: `intent/`, `spec/`, `plan/`, `review/`, `qa/`, `metrics/`, `setup/`
-- `.agent/` — обвязка: `skills/`, `commands/`, `hooks/`, `permissions.md`
+- `.opencode/` — обвязка агента: `skills/`, `commands/`, `agents/`; конфиг — `opencode.json` в корне
+- `.githooks/` — git-хуки проекта; `docs/agent-rules.md` — права и правила агента человеческим языком
 - `scripts/`, `mocks/` — служебные скрипты и моки внешних сервисов
 
 ## Конвенции кода
@@ -32,6 +33,7 @@ curl http://localhost:8080/health
 
 ## Правила для агента
 - Не читать и не править `.env*`.
+- Права и запреты целиком — в `opencode.json` (блок `permission`) и в `docs/agent-rules.md`.
 - Не запускать `scripts/reset_db.sh`.
 - Данные только синтетические. Реальные заявки, ПДн, VIN владельцев и ключи в репозиторий не попадают.
 - Артефакты задач класть в `docs/intent|spec|plan/` с именем `<тип>_<ID задачи>.md`.

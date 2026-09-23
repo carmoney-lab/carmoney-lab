@@ -74,7 +74,10 @@ git switch -c d1/1.7-<логин> upstream/savepoint/d1-03   # если отст
 ## Что ещё лежит в репозитории
 
 - [`AGENTS.md`](AGENTS.md) — паспорт проекта для агента: команды, конвенции, запреты.
-- [`.agent/`](.agent/) — обвязка агента: скиллы, команды, хуки, права. Вы её дорабатываете сами.
+- [`.opencode/`](.opencode/) — обвязка агента: скиллы, команды, субагенты. Вы её дорабатываете сами.
+- [`opencode.json`](opencode.json) — конфиг агента: модель, права (`permission`), MCP-серверы.
+- [`.githooks/`](.githooks/) — git-хуки проекта; подключаются `git config core.hooksPath .githooks`.
+- [`docs/agent-rules.md`](docs/agent-rules.md) — права и правила агента человеческим языком.
 - [`docs/setup/`](docs/setup/) — как поставить инструменты и подключить MCP.
 - [`docs/`](docs/) — сюда складываются артефакты задач: intent, spec, plan, ревью, приёмка, метрики.
 

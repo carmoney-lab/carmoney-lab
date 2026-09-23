@@ -3,7 +3,7 @@
 # ЗАГОТОВКА, НЕ РАБОЧИЙ ХУК.
 #
 # Файл называется pre-commit.sample, поэтому git его не запускает. Рабочий хук
-# (файл pre-commit + исполняемый бит + git config core.hooksPath .agent/hooks)
+# (файл pre-commit + исполняемый бит + git config core.hooksPath .githooks)
 # вы делаете в упражнении 1.17 — заготовка нужна только чтобы было с чего начать.
 #
 # Что должно быть в готовом хуке:
@@ -17,7 +17,7 @@
 
 set -euo pipefail
 
-echo "[pre-commit] Это заготовка из .agent/hooks/pre-commit.sample, проверки не реализованы."
+echo "[pre-commit] Это заготовка из .githooks/pre-commit.sample, проверки не реализованы."
 echo "[pre-commit] Сделайте рабочий хук в упражнении 1.17."
 
 # Список файлов в индексе — с него удобно начинать:
