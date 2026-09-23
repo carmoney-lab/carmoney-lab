@@ -30,3 +30,6 @@ docker-compose.override.yml
 .idea/
 .vscode/
 .DS_Store
+
+# Kilo Code: worktree-копии Agent Manager (упражнение 1.7)
+.kilo/worktrees/
