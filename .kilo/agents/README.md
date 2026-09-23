@@ -1,8 +1,8 @@
-# .opencode/agents/
+# .kilo/agents/
 
 Субагент — отдельная роль со своей моделью, своим промптом и своими правами.
 Один файл `<роль>.md` = один агент. Имя файла и есть имя агента: `reviewer.md` →
-`@reviewer` в сессии или `--agent reviewer` в `opencode run`.
+`@reviewer` в сессии или `--agent reviewer` в `kilo run`.
 
 Формат — markdown с YAML-фронтматтером:
 
@@ -20,20 +20,22 @@ permission:
 Ты — ревьюер. Читаешь diff, не правишь код...
 ```
 
-Поля фронтматтера: `description`, `mode` (`subagent` / `primary` / `all`), `model`,
+Поля фронтматтера: `description`, `mode` (`primary` — виден в переключателе агентов, `subagent` — вызывается через `@имя` / `all`), `model`,
 `temperature`, `permission`. Права в файле агента перекрывают общие из
-[`opencode.json`](../../opencode.json) — ревьюеру, например, запрещают `edit`.
+[`kilo.jsonc`](../../kilo.jsonc) — ревьюеру, например, запрещают `edit`.
 
 Проверить, что агент подхватился:
 
 ```bash
-opencode agent list
+kilo agent list
 ```
 
 Кто здесь появится по ходу практикума:
 
 | Файл | Роль | Где |
 |---|---|---|
+| `planner.md` | свой агент: план в `docs/plan/`, код не трогает | 1.12 |
+| `scout.md` | субагент-разведчик: ищет по коду, ничего не правит | 1.13 |
 | `reviewer.md` | ревью diff по `REVIEW.md` | 2.12 |
 | `test-writer.md` | пишет тесты, существующие не трогает | ДЗ 2.4 ★ |
 | `orchestrator.md` | раздаёт issues и собирает PR | 3.12 |

@@ -1,0 +1,7 @@
+// Конфиг Kilo Code для проекта. Модель по умолчанию — MiniMax M3 через OpenRouter.
+// Права агента (блок "permission") вы добавляете сами в упражнении 1.9,
+// MCP-серверы (блок "mcp") — в 1.19. Ключи сюда не пишем никогда.
+{
+  "$schema": "https://app.kilo.ai/config.json",
+  "model": "openrouter/minimax/minimax-m3"
+}

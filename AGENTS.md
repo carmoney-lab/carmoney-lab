@@ -21,7 +21,7 @@ curl http://localhost:8080/health
 - `db/` — `schema.sql` и `seed.sql` (24 синтетические заявки)
 - `tests/` — PHPUnit: `Unit/` и `Feature/`
 - `docs/` — артефакты задач: `intent/`, `spec/`, `plan/`, `review/`, `qa/`, `metrics/`, `setup/`
-- `.opencode/` — обвязка агента: `skills/`, `commands/`, `agents/`; конфиг — `opencode.json` в корне
+- `.kilo/` — обвязка агента: `skills/`, `commands/`, `agents/`; конфиг — `kilo.jsonc` в корне
 - `.githooks/` — git-хуки проекта; `docs/agent-rules.md` — права и правила агента человеческим языком
 - `scripts/`, `mocks/` — служебные скрипты и моки внешних сервисов
 
@@ -33,7 +33,7 @@ curl http://localhost:8080/health
 
 ## Правила для агента
 - Не читать и не править `.env*`.
-- Права и запреты целиком — в `opencode.json` (блок `permission`) и в `docs/agent-rules.md`.
+- Права и запреты целиком — в `kilo.jsonc` (блок `permission`) и в `docs/agent-rules.md`.
 - Не запускать `scripts/reset_db.sh`.
 - Данные только синтетические. Реальные заявки, ПДн, VIN владельцев и ключи в репозиторий не попадают.
 - Артефакты задач класть в `docs/intent|spec|plan/` с именем `<тип>_<ID задачи>.md`.

@@ -68,59 +68,43 @@ winget install PHP.PHP.8.3                  # Windows, Composer — getcomposer.
 
 ---
 
-## 2. Агент: OpenCode
+## 2. Агент: Kilo Code
 
-Единственный агент практикума. Работает в терминале, в том числе во встроенном терминале
-вашей IDE — отдельный интерфейс осваивать не нужно.
+Единственный агент практикума. Живёт панелью внутри вашей IDE — отдельный интерфейс
+осваивать не нужно. Для CI и терминала у него есть CLI `kilo` с теми же конфигами.
 
 | | |
 |---|---|
-| Репозиторий | <https://github.com/anomalyco/opencode> (ранее `sst/opencode`) |
-| Документация | <https://opencode.ai/docs> |
-| Лицензия | MIT |
-| Проверено | `1.18.32` |
-| Модули | все три дня |
+| Сайт и документация | <https://kilo.ai/docs> |
+| Расширение VS Code | `kilocode.Kilo-Code` в маркетплейсе |
+| CLI | npm-пакет `@kilocode/cli`, команда `kilo` |
+| Проверено | расширение и CLI `7.7.9` |
 
 ### Установка
 
-```bash
-# macOS / Linux — официальный установщик, кладёт бинарь в ~/.opencode/bin
-# и сам дописывает PATH в ~/.zshrc или ~/.bashrc
-curl -fsSL https://opencode.ai/install | bash
+**VS Code, Cursor, Windsurf, VSCodium.** Панель расширений (`Cmd+Shift+X` / `Ctrl+Shift+X`)
+→ «Kilo Code», издатель `kilocode` → Install. Иконка Kilo появится на боковой панели.
 
-# macOS / Linux — Homebrew (альтернатива)
-brew install anomalyco/tap/opencode
+**JetBrains (PhpStorm, IntelliJ).** Settings → Plugins → Marketplace → «Kilo Code» →
+Install → перезапустить IDE.
 
-# Windows
-scoop install opencode
-choco install opencode
-
-# Любая ОС, если уже есть Node.js
-npm i -g opencode-ai@latest
-```
-
-После установки **откройте новый терминал** — иначе PATH ещё старый.
+**CLI** (понадобится в днях 2–3 для CI, в классе не обязателен):
 
 ```bash
-opencode --version     # ожидаем номер версии, например 1.18.32
+npm i -g @kilocode/cli
+kilo --version        # ожидаем номер версии, например 7.7.9
 ```
-
-> Если раньше стоял OpenCode версии 0.x — снесите его перед установкой, конфиги несовместимы.
 
 ### Ключ OpenRouter
 
 Ключ **персональный**, выдаётся заранее, лимит **5 USD на все три дня**. Ключами не
 меняемся: по ним считается расход каждого.
 
-Способ 1 — через сам OpenCode (ключ ляжет в `~/.local/share/opencode/auth.json`):
+В расширении: панель Kilo → шестерёнка Settings → вкладка **Providers** → добавить
+OpenRouter → вставить ключ. В CLI: `kilo auth login` → OpenRouter → ключ.
 
-```
-opencode          # запустить TUI
-/connect          # выбрать OpenRouter, вставить ключ
-```
-
-Способ 2 — переменная окружения. Живёт **в окружении вашего ноутбука** — не в репозитории,
-не в `.env`, не в промпте:
+Ключ живёт **в настройках агента или в окружении вашего ноутбука** — не в репозитории,
+не в `.env`, не в `kilo.jsonc`, не в промпте. Для CLI и CI — переменная окружения:
 
 ```bash
 echo 'export OPENROUTER_API_KEY="<ваш ключ>"' >> ~/.zshrc && source ~/.zshrc
@@ -131,57 +115,51 @@ echo 'export OPENROUTER_API_KEY="<ваш ключ>"' >> ~/.zshrc && source ~/.zs
 setx OPENROUTER_API_KEY "<ваш ключ>"
 ```
 
-Проверка — ключ целиком в терминал не печатаем:
+Проверка ключа и остатка лимита (ключ целиком в терминал не печатаем):
 
 ```bash
-echo "${OPENROUTER_API_KEY:0:7}…"      # должно быть непусто
+curl -s https://openrouter.ai/api/v1/key -H "Authorization: Bearer $OPENROUTER_API_KEY"
+# в ответе limit и limit_remaining
 ```
 
-**Личная подписка вместо ключа не подходит.** Примерно у половины участников есть ChatGPT
-Plus / Claude Pro и т.п. Пользоваться ими никто не запрещает, но агент в IDE и все замеры
-токенов идут через OpenRouter: в упражнениях 1.4, 2.5, 3.1, 3.33 сравниваются цифры из
+**Личная подписка вместо ключа не подходит.** Пользоваться ChatGPT Plus / Claude Pro никто
+не запрещает, но агент в IDE и все замеры токенов идут через OpenRouter: цифры берутся из
 OpenRouter → Activity, а подписка таких цифр не даёт. Ключ нужен всем.
 
 ### Выбор модели
 
-Модели по умолчанию: **MiniMax M3** — генерация и частые прогоны, **GLM 5.3** — план, ревью,
-судья. Ревьюер и судья работают на модели, отличной от модели автора.
+Модели по умолчанию: **MiniMax M3** — генерация и частые прогоны, **GLM 5.3** — карта кода,
+план, ревью, судья. Ревьюер и судья работают на модели, отличной от модели автора.
 
-Полные идентификаторы в OpenCode — `провайдер/модель`:
-
-| Роль | ID в OpenCode |
+| Роль | ID в Kilo |
 |---|---|
 | MiniMax M3 | `openrouter/minimax/minimax-m3` |
 | GLM 5.3 | `openrouter/z-ai/glm-5.3` |
 
-Выбрать на лету — команда `/models` в TUI. Зафиксировать для проекта — `opencode.json`
-в корне репозитория:
-
-```json
-{
-  "$schema": "https://opencode.ai/config.json",
-  "model": "openrouter/minimax/minimax-m3"
-}
-```
+Выбрать на лету — выпадающий список моделей в панели Kilo. Модель по умолчанию для
+проекта уже задана в [`kilo.jsonc`](../../kilo.jsonc) в корне репозитория.
 
 > **`sol` на ключах не выдан.** Если карточка или промпт его упоминает — это опечатка.
 
-### Запуск внутри IDE
+### Агенты вместо режимов
 
-**VS Code, Cursor, Windsurf, VSCodium.** Откройте встроенный терминал и наберите `opencode` —
-расширение доустановится само. Дальше `Cmd+Esc` (macOS) / `Ctrl+Esc` (Windows, Linux)
-открывает OpenCode в сплите, `Cmd+Shift+Esc` — новую сессию,
-`Cmd+Option+K` / `Alt+Ctrl+K` вставляет ссылку на файл вида `@File#L37-42`.
-Если расширение не поставилось — проверьте, что в PATH есть команда запуска редактора
-(`code`, `cursor`, `windsurf`): `Cmd+Shift+P` → «Shell Command: Install 'code' command in PATH».
+В Kilo режимы называются **агентами**. Переключатель — в панели Kilo или `Cmd+.` / `Ctrl+.`.
 
-**JetBrains (PhpStorm, IntelliJ).** Расширения нет и не нужно: вкладка **Terminal** внизу,
-`opencode`, работаем там.
+| Агент | Что может |
+|---|---|
+| `ask` | только читать и отвечать |
+| `code` | читать и править файлы, запускать команды |
+| `plan` | план в `.kilo/plans/`, код не трогает |
+| `debug` | как `code`, с упором на поиск причины |
 
-### Неинтерактивный запуск (CI, модули 2.23 и 3.13)
+Свои агенты — файлы `.kilo/agents/<имя>.md`, см. ниже. **Agent Manager**
+(`Cmd+Shift+M` / `Ctrl+Shift+M`) запускает сессии параллельно, каждую в своём git worktree
+в `.kilo/worktrees/`.
+
+### Неинтерактивный запуск (CI, дни 2–3)
 
 ```bash
-opencode run "<промпт>" \
+kilo run "<промпт>" \
   --model openrouter/z-ai/glm-5.3 \
   --agent reviewer \
   --auto \
@@ -190,21 +168,21 @@ opencode run "<промпт>" \
 
 | Флаг | Что делает |
 |---|---|
-| `--model` | модель в виде `провайдер/модель` |
-| `--agent` | какого агента из `.opencode/agents/` использовать |
+| `-m`, `--model` | модель в виде `провайдер/модель` |
+| `--agent` | какого агента из `.kilo/agents/` использовать |
 | `--auto` | автоматически подтверждать разрешения, кроме явных `deny` — обязателен в job, иначе процесс повиснет на вопросе |
 | `--format json` | сырые события JSON вместо форматированного вывода — удобно парсить в пайплайне |
 | `-f`, `--file` | приложить файл к сообщению (например, diff PR) |
 
-В GitHub Actions ставим тем же установщиком, ключ — только из secrets:
+В GitHub Actions ключ — только из secrets:
 
 ```yaml
-- name: Install OpenCode
-  run: curl -fsSL https://opencode.ai/install | bash && echo "$HOME/.opencode/bin" >> $GITHUB_PATH
+- name: Install Kilo CLI
+  run: npm i -g @kilocode/cli
 - name: AI review
   env:
     OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY_CI }}
-  run: opencode run --auto --model openrouter/z-ai/glm-5.3 "$(cat prompt.txt)"
+  run: kilo run --auto --model openrouter/z-ai/glm-5.3 "$(cat prompt.txt)"
 ```
 
 ### Конфиги, которые понадобятся по ходу
@@ -213,14 +191,14 @@ opencode run "<промпт>" \
 
 | Что | Где лежит | В каком модуле |
 |---|---|---|
-| Правила проекта | `AGENTS.md` в корне | 1.3, 2.3 |
-| Права агента | секция `permission` в `opencode.json`: `"allow"` / `"ask"` / `"deny"` | ДЗ.6, 2.16, 2.20, 3.7, 3.26 |
-| Субагенты | `.opencode/agents/<роль>.md` — markdown с YAML-фронтматтером | 2.12, 3.12, 3.14, 3.31 |
-| Скиллы | `.opencode/skills/<имя>/SKILL.md` | 2.1, 2.3 |
-| Команды (сохранённые промпты) | `.opencode/commands/<имя>.md`, вызов `/<имя>` | 1.12 ★★, ДЗ.3, ДЗ.5 |
-| Git-хуки | `.githooks/`, подключение `git config core.hooksPath .githooks` | 1.17, 2.16, 3.7, 3.26 |
-| Права человеческим языком | `docs/agent-rules.md` — читаемая копия блока `permission` | ДЗ.6 |
-| MCP-серверы | секция `mcp` в `opencode.json` — см. [`mcp.md`](mcp.md) | 1.5 ★★ |
+| Правила проекта | `AGENTS.md` в корне — Kilo подгружает его в каждую сессию сам | 1.8, 2.3 |
+| Права агента | секция `permission` в `kilo.jsonc`: `"allow"` / `"ask"` / `"deny"`; после правки — Reload Window | 1.9, 2.16, 2.20, 3.7, 3.26 |
+| Свои агенты и субагенты | `.kilo/agents/<имя>.md` — markdown с YAML-фронтматтером | 1.12, 1.13, 2.12, 3.12, 3.14, 3.31 |
+| Скиллы | `.kilo/skills/<имя>/SKILL.md` | 2.1, 2.3 |
+| Команды (сохранённые промпты) | `.kilo/commands/<имя>.md`, вызов `/<имя>` | дни 2–3 |
+| Git-хуки | `.githooks/`, подключение `git config core.hooksPath .githooks` | 2.16, 3.7, 3.26 |
+| Права человеческим языком | `docs/agent-rules.md` — читаемая копия блока `permission` | 1.9 ★, 2.20 |
+| MCP-серверы | секция `mcp` в `kilo.jsonc` — см. [`mcp.md`](mcp.md) | 1.19 |
 
 Формат файла субагента:
 
@@ -239,30 +217,31 @@ permission:
 ```
 
 Имя файла = имя агента: `reviewer.md` → агент `reviewer`, вызывается `@reviewer` в сессии
-или `--agent reviewer` в `opencode run`. Проверить, что подхватился: `opencode agent list`.
+или `--agent reviewer` в `kilo run`. Проверить, что подхватился: `kilo agent list`.
 
-> Каталоги внутри `.opencode/` — во множественном числе: `agents/`, `skills/`, `commands/`,
-> `plugins/`. Единственное число (`agent/`) тоже работает, это обратная совместимость.
+> Каталоги внутри `.kilo/` — во множественном числе: `agents/`, `skills/`, `commands/`.
+> Старые пути `.kilocode/` и `.kilocodemodes` Kilo при запуске переносит сам.
 
-Скиллы OpenCode ищет в шести местах, поэтому библиотека, написанная под Claude Code,
+Скиллы Kilo ищет в шести местах, поэтому библиотека, написанная под Claude Code,
 подхватывается без переделки:
 
 ```
-.opencode/skills/<имя>/SKILL.md        ~/.config/opencode/skills/<имя>/SKILL.md
+.kilo/skills/<имя>/SKILL.md            ~/.config/kilo/skills/<имя>/SKILL.md
 .claude/skills/<имя>/SKILL.md          ~/.claude/skills/<имя>/SKILL.md
 .agents/skills/<имя>/SKILL.md          ~/.agents/skills/<имя>/SKILL.md
 ```
 
-Во фронтматтере `SKILL.md` OpenCode читает только `name`, `description`, `license`,
+Во фронтматтере `SKILL.md` Kilo читает только `name`, `description`, `license`,
 `compatibility`, `metadata`. `name` — строчные латинские буквы и дефисы, совпадает с именем
-папки. Остальные поля игнорируются молча.
+папки. Остальные поля игнорируются молча. Какие скиллы видит агент — `kilo debug skill`.
 
 ---
 
-## 3. Экономия контекста (упражнение 1.4)
+## 3. Экономия контекста (упражнения 1.17–1.18)
 
-Два инструмента с одной целью и разным механизмом: **Caveman** режет то, что агент
-**пишет**, **RTK** — то, что агент **читает**.
+Три инструмента с одной целью и разным механизмом: **Caveman** режет то, что агент
+**пишет**, **ast-index** — сколько кода агент **читает**, **RTK** — вывод команд, который
+попадает в контекст. В классе ставим первые два (1.17–1.18), RTK — по желанию.
 
 ### Caveman
 
@@ -276,18 +255,35 @@ permission:
 Внешний открытый проект, не наша разработка.
 
 ```bash
-# Малый камень: только скилл. Работает в 30+ агентах, включая OpenCode.
-npx skills add JuliusBrussee/caveman -g
+# Малый камень: только скилл (так ставим в 1.18)
+npx skills add JuliusBrussee/caveman -a kilo -g -y
 
 # Большой камень: локальный прокси, режет ещё и вход агента
 npm install -g @caveman-ai/cli && caveman setup --install
-caveman opencode
+caveman kilo              # проверено автором только для Kilo CLI, не для расширения
 ```
 
-Проверка: в сессии OpenCode наберите `/caveman` и задайте любой вопрос — ответ должен
+Проверка: `kilo debug skill` показывает `caveman`; в сессии Kilo наберите `/caveman` и задайте любой вопрос — ответ должен
 стать заметно короче. Нужен Node.js 22.13+.
 
-### RTK
+### ast-index
+
+| | |
+|---|---|
+| Репозиторий | <https://github.com/defendend/Claude-ast-index-search> |
+| Что делает | структурный индекс кода: агент ищет по классам, функциям и вызовам, а не читает файлы целиком |
+
+```bash
+brew tap defendend/ast-index && brew install ast-index   # macOS, Linux
+winget install --id defendend.ast-index                  # Windows
+ast-index rebuild                                        # в корне проекта, один раз
+ast-index search mileage                                 # проверка
+```
+
+Агенту достаточно строки в `AGENTS.md`: «Поиск по коду — через ast-index (search, class,
+symbol, usages, callers), а не чтением файлов целиком».
+
+### RTK (по желанию)
 
 | | |
 |---|---|
@@ -308,13 +304,13 @@ curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/instal
 После установки — подключить к агенту и перезапустить его:
 
 ```bash
-rtk init -g --opencode      # плагин для OpenCode
+rtk init --agent kilocode   # подключение к Kilo Code, в корне проекта
 rtk init --show             # проверить, что подключился
 ```
 
 ```bash
 rtk --version               # ожидаем номер версии
-rtk gain                    # дашборд экономии — цифры для отчёта по 1.4
+rtk gain                    # дашборд экономии
 ```
 
 > **Осторожно с одноимённым пакетом.** На crates.io есть другой проект `rtk` (Rust Type Kit).
@@ -328,22 +324,22 @@ rtk gain                    # дашборд экономии — цифры д�
 Два источника цифр, и они не взаимозаменяемы:
 
 ```bash
-opencode stats --days 1 --models    # локальная статистика: токены и $ по моделям за сутки
-opencode stats --project ""         # только текущий проект
+kilo stats --days 1 --models    # локальная статистика: токены и $ по моделям за сутки
+kilo stats --project ""         # только текущий проект
 ```
 
 **OpenRouter → Activity** — вкладка в личном кабинете: input, output и $ по каждому запросу,
-с точностью до времени. Это источник истины по расходу ключа; `opencode stats` считает
+с точностью до времени. Это источник истины по расходу ключа; `kilo stats` считает
 по своим сессиям и не видит прогоны из CI.
 
-Для отчётов по 1.4, 2.5, 3.1 и 3.33 берите Activity; `opencode stats` — чтобы быстро
+Для отчётов по 1.17–1.18, 2.5, 3.1 и 3.33 берите Activity; `kilo stats` — чтобы быстро
 свериться, не выходя из терминала.
 
 ---
 
 ## 4. Понадобится позже
 
-### Understand Anything (упражнение 1.9)
+### Understand Anything (дни 2–3)
 
 Машинная карта репозитория: строит граф файлов, функций и зависимостей и отдаёт его
 интерактивным дашбордом.
@@ -355,7 +351,7 @@ opencode stats --project ""         # только текущий проект
 | Лицензия | MIT |
 
 ```bash
-# OpenCode (и Codex, Gemini CLI, Cursor, Copilot — платформа передаётся аргументом)
+# Для Kilo берём платформу opencode: скиллы лягут в ~/.agents/skills, их Kilo читает
 curl -fsSL https://raw.githubusercontent.com/Egonex-AI/Understand-Anything/main/install.sh | bash -s opencode
 ```
 
@@ -383,32 +379,32 @@ iwr -useb https://raw.githubusercontent.com/Egonex-AI/Understand-Anything/main/i
 /understand --auto-update
 
 # 2. В job — через неинтерактивный запуск агента
-opencode run --auto --model openrouter/minimax/minimax-m3 \
+kilo run --auto --model openrouter/minimax/minimax-m3 \
   "Используй скилл understand и обнови граф репозитория"
 ```
 
 Граф лежит в `.ua/knowledge-graph.json` и коммитится. Если перевалит за 10 МБ —
 переводите на git-lfs (`git lfs track ".ua/*.json"`).
 
-### Библиотеки скиллов (ДЗ.1, упражнение 2.1)
+### Библиотеки скиллов (упражнение 2.1)
 
 | Библиотека | Репозиторий | Что даёт |
 |---|---|---|
 | **superpowers** | <https://github.com/obra/superpowers> | дисциплина разработки: брейншторм до работы, план, TDD, систематическая отладка, worktree, запрос ревью |
 | **ai-native-sdlc-skills** | <https://github.com/asaf-shitrit/ai-native-sdlc-skills> | 11 неофициальных скиллов под playbook Anthropic: `sdlc-intent`, `sdlc-spec`, `sdlc-plan`, `sdlc-hooks`, `sdlc-pr-review` и др. |
 
-Установка superpowers в OpenCode — попросите самого агента:
+Установка любой библиотеки — тем же установщиком, что Caveman, в проект:
 
-```
-Fetch and follow instructions from https://raw.githubusercontent.com/obra/superpowers/refs/heads/main/.opencode/INSTALL.md
+```bash
+npx skills add obra/superpowers -a kilo -y
 ```
 
-Для остальных библиотек: клонируйте репозиторий и скопируйте папки скиллов
-в `.opencode/skills/` вашего проекта. Скиллы кладём **в git, к проекту**, а не глобально:
+Если установщик библиотеку не берёт — клонируйте репозиторий и скопируйте папки скиллов
+в `.kilo/skills/` вашего проекта. Скиллы кладём **в git, к проекту**, а не глобально:
 в 2.1 сравниваются прогоны с разными библиотеками, и глобальная установка их перемешает.
 
-> **Осторожно с путём.** Каталог проекта — `.opencode/skills/`, ровно так, как его
-> ищет OpenCode. Похожие, но другие имена (`.agent/`, `.agents/skill/`) он не
+> **Осторожно с путём.** Каталог проекта — `.kilo/skills/`, ровно так, как его
+> ищет Kilo. Похожие, но другие имена (`.agent/`, `.agents/skill/`) он не
 > сканирует: скилл, положенный туда, просто не подхватится и упражнение не сработает.
 > Проверить список путей — в таблице выше.
 
@@ -416,7 +412,7 @@ Fetch and follow instructions from https://raw.githubusercontent.com/obra/superp
 > это приватный репозиторий, доступа к нему у участников нет. Если увидите упоминание
 > в чужой инструкции — пропускайте.
 
-### gitleaks (упражнение 1.17)
+### gitleaks (дни 2–3)
 
 Поиск секретов в diff, вызывается из `pre-commit`.
 
@@ -451,7 +447,7 @@ docker run --rm -t zaproxy/zap-stable zap-baseline.py -t http://<host>:<port>
 По умолчанию он заводит issue с найденными алертами и **не** роняет job; чтобы ронял —
 `fail_action: true`.
 
-### Линтер стиля PHP (упражнение 1.17 ★)
+### Линтер стиля PHP (дни 2–3)
 
 Ставится **в проект**, а не глобально — тогда у всей команды одна версия:
 
@@ -473,15 +469,17 @@ git --version
 gh --version && gh auth status
 docker compose version                  # пропускаем, если Docker не ставили
 php -v && composer -V
-opencode --version
+kilo --version                          # если ставили CLI
 echo "${OPENROUTER_API_KEY:0:7}…"       # непусто; ключ целиком не печатаем
 ```
 
 И один живой прогон — он проверяет сразу и установку, и ключ, и доступ к модели:
 
 ```bash
-opencode run --model openrouter/minimax/minimax-m3 "Ответь одним словом: работает"
+curl -s https://openrouter.ai/api/v1/key -H "Authorization: Bearer $OPENROUTER_API_KEY"   # limit 5
 ```
+
+А в самом Kilo — упражнение 1.4: первый запрос агенту в своём проекте.
 
 ---
 
@@ -492,15 +490,15 @@ opencode run --model openrouter/minimax/minimax-m3 "Ответь одним сл
 
 | Симптом | Что это | Что делать прямо сейчас |
 |---|---|---|
-| `opencode: command not found` сразу после установки | PATH ещё старый | Открыть **новый** терминал. Не помогло — `export PATH="$HOME/.opencode/bin:$PATH"` |
-| `opencode` ставится, но в IDE расширения нет | нет команды запуска редактора в PATH | Работать во вкладке Terminal как есть — на упражнения это не влияет |
+| Панели Kilo нет после установки | расширение не активировалось | Command Palette → «Developer: Reload Window»; не помогло — переустановить расширение |
+| Kilo не видит правку `kilo.jsonc` или нового агента | проектный конфиг кэшируется | «Developer: Reload Window» |
 | Модель отвечает `401` / `invalid api key` | ключ не подхватился | `echo "${OPENROUTER_API_KEY:0:7}…"` — пусто? переменная не в том шелле. Не пусто? ключ мог быть скопирован с пробелом на конце |
 | Модель отвечает `402` / `insufficient credits` | упёрлись в лимит 5 USD | В чат «Помощь», параллельно продолжайте на MiniMax M3 — она дешевле |
-| `docker compose` не работает | Docker не ставится на корпоративной машине | `composer install && make test` работает без Docker; сервис поднимете на стенде (1.18) |
-| Corporate proxy / SSL-ошибки при `curl ... \| bash` | инспекция трафика | Скачать бинарь со страницы releases руками и положить в PATH: [OpenCode](https://github.com/anomalyco/opencode/releases), [RTK](https://github.com/rtk-ai/rtk/releases) |
-| `npm i -g` падает на правах | нет прав на глобальную папку npm | Не воевать: у OpenCode и RTK есть установщики в домашнюю папку (см. выше) |
-| Caveman / RTK / Understand Anything не встали | это ускорители, не фундамент | Пропустить. 1.4 и 1.9 делаются и без них — просто цифры экономии будут чужие, с экрана ведущего |
+| `docker compose` не работает | Docker не ставится на корпоративной машине | `composer install && make test` работает без Docker; для 1.19 ведущий даст адрес сервиса на стенде |
+| Corporate proxy / SSL-ошибки при `curl ... \| bash` | инспекция трафика | Скачать бинарь со страницы releases руками и положить в PATH: [RTK](https://github.com/rtk-ai/rtk/releases) |
+| `npm i -g` падает на правах | нет прав на глобальную папку npm | Расширение Kilo ставится из маркетплейса IDE без npm. Для CLI и RTK — установщики в домашнюю папку или `npm config set prefix ~/.npm-global` |
+| Caveman / ast-index / RTK не встали | это ускорители, не фундамент | Пропустить. 1.17–1.18 тогда смотрите с экрана ведущего и доделайте дома |
 | Ничего из перечисленного | — | Чат «Помощь», строкой: что делали, что выдал терминал. Скриншот терминала лучше пересказа |
 
 Что **нельзя** обойти и без чего упражнения встанут: Git, `gh` с выполненным `gh auth login`,
-OpenCode и рабочий ключ OpenRouter. Остальное — опционально.
+Kilo и рабочий ключ OpenRouter. Остальное — опционально.
