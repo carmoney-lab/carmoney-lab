@@ -30,3 +30,6 @@ docker-compose.override.yml
 .idea/
 .vscode/
 .DS_Store
+
+# Kilo Code: копии репо для параллельных сессий (1.2.3) — не коммитим
+/.kilo/worktrees/
